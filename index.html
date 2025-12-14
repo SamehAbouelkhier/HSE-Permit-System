@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام تصاريح العمل الموحد (AI-PTW) - PSM Compliance</title>
+    <style>
+        /* =============================
+           1. التصميم (CSS)
+           ============================= */
+        
+        .color-bar {
+            height: 10px;
+            width: 100%;
+            background-color: #d9534f;
+            margin-bottom: 20px;
+            border-radius: 8px 8px 0 0;
+            transition: background-color 0.3s;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 20px;
+            color: #333;
+        }
+        .permit-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* تنسيق الترويسة */
+        .company-header {
+            overflow: auto; 
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #d9534f;
+        }
+        .logo-and-info {
+            float: left;
+            display: flex;
+            align-items: center;
+        }
+        .logo-container {
+            margin-left: 10px;
+        }
+        .logo-container img {
+            max-width: 80px;
+            height: auto;
+            display: block;
+        }
+        .safety-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .safety-info p {
+            margin: 0;
+            line-height: 1.3;
+        }
+        .safety-info .sub-dept {
+            color: #4CAF50;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        
+        /* العنوان الرئيسي */
+        #permit-title {
+            color: #d9534f;
+            padding-bottom: 10px;
+            text-align: center;
+            margin-top: 15px;
+            border-bottom: none; 
+            transition: color 0.3s;
+        }
+
+        /* تنسيقات النموذج */
+        .form-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea {
+            width: 98%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        textarea { resize: vertical; }
+        .hard-stop {
+            background-color: #f2dede;
+            border-color: #a94442;
+            color: #a94442;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none;
+        }
+        .ai-check {
+            background-color: #d9edf7;
+            border-color: #31708f;
+            color: #31708f;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        button {
+            background-color: #d9534f; 
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* إخفاء الأقسام غير المطلوبة مبدئياً */
+        .type-specific-section {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="permit-container">
+        <div id="permit-color-bar" class="color-bar"></div>
+        
+        <div class="company-header">
+            <div class="logo-and-info">
+                <div class="logo-container">
+                    <img src="logo.png" alt="شعار الشركة">
+                </div>
+                <div class="safety-info">
+                    <p class="sub-dept">الإدارة العامة للسلامة والصحة المهنية وحماية البيئة</p>
+                </div>
+            </div>
+            <h2 id="permit-title">تصريح العمل الساخن - AI-PTW</h2>
+        </div>
+        
+        <div class="form-group">
+            <label for="permit-type">**اختر نوع تصريح العمل المطلوب:**</label>
+            <select id="permit-type" onchange="updatePermitType(); runAILogic();">
+                <option value="HotWork" selected>1. العمل الساخن (Hot Work)</option>
+                <option value="ConfinedSpace">2. دخول الأماكن المغلقة (Confined Space)</option>
+                <option value="ColdWork">3. العمل البارد (Cold Work)</option>
+                <option value="Height">4. العمل على ارتفاعات (Working at Height)</option>
+                <option value="Excavation">5. الحفر (Excavation)</option>
+            </select>
+        </div>
+
+        
+        <div class="form-group">
+            <h3>I. معلومات العمل الأساسية</h3>
+            <label for="work-order">رقم أمر الصيانة (SAP Work Order ID):</label>
+            <input type="text" id="work-order" value="WO-5501">
+            <label for="location">موقع العمل:</label>
+            <select id="location">
+                <option value="T-105" selected>منطقة المستودعات 105</option>
+                <option value="Pump-102">طلمبة P-102</option>
+                <option value="Tank-501">خزان T-501 (مكان مغلق)</option>
+                <option value="Pipe-Rack">منصة الأنابيب (ارتفاع)</option>
+            </select>
+            <label for="start-date">تاريخ ووقت بدء العمل:</label>
+            <input type="date" id="start-date" value="2025-01-01">
+            <input type="time" id="start-time" value="08:00">
+            <div id="duration-check" class="ai-check">✅ صلاحية التصريح ضمن المعيار القياسي (8 ساعات).</div>
+        </div>
+
+        <div id="gas-check-section" class="form-group">
+            <h3>II. فحص الأجواء والغازات</h3>
+            <label for="oxygen-reading">نسبة الأكسجين (% O2):</label>
+            <input type="number" id="oxygen-reading" value="20.9" step="0.1" min="0" max="100">
+            <label for="lel-reading">تركيز الغازات القابلة للاشتعال (LEL %):</label>
+            <input type="number" id="lel-reading" value="0" min="0" max="100">
+            <label for="h2s-reading">تركيز الغازات السامة (H2S - ppm):</label>
+            <input type="number" id="h2s-reading" value="0" min="0" max="50">
+            <div id="gas-hard-stop" class="hard-stop">❌ رفض فوري: قراءات الأجواء غير آمنة.</div>
+        </div>
+
+        <div class="form-group">
+            <h3>III. تقييم المخاطر وإدارة التغيير (PSM)</h3>
+            <label for="moc-check">هل يتضمن العمل تغييرًا غير روتيني؟ (إدارة التغيير MOC)</label>
+            <select id="moc-check">
+                <option value="No" selected>لا/عمل روتيني</option>
+                <option value="Yes">نعم/تم إصدار MOC</option>
+                <option value="Pending">نعم/MOC قيد المراجعة</option>
+            </select>
+            <div id="moc-warning" class="ai-check" style="display: none;">⚠️ تنبيه MOC: يجب إنهاء مراجعة MOC قبل الإرسال.</div>
+            
+            <label for="risk-rating" style="margin-top: 10px;">تصنيف المخاطر المتبقية بعد تطبيق الاحتياطات:</label>
+            <select id="risk-rating">
+                <option value="High">مرتفعة (يُلغى التصريح)</option>
+                <option value="Medium" selected>متوسطة</option>
+                <option value="Low">منخفضة</option>
+            </select>
+            <div id="risk-hard-stop" class="hard-stop" style="display: none;">❌ رفض فوري: لا يُسمح بأعمال تتضمن مخاطر "مرتفعة".</div>
+        </div>
+        
+        <div class="form-group">
+            <h3 id="checklist-title">IV. الشروط الإلزامية والاحتياطات (PSM/قانون العمل)</h3>
+            <div id="dynamic-checklist">
+                </div>
+            <div id="essential-checklist-hard-stop" class="hard-stop" style="display: none;">❌ رفض فوري: يجب تأكيد جميع بنود الاحتياطات الإلزامية.</div>
+        </div>
+
+        <div class="form-group">
+            <h3>V. وصف العمل والأدوات</h3>
+            <label for="work-details">**وصف تفصيلي للعمل المُراد تنفيذه:**</label>
+            <textarea id="work-details" rows="4" placeholder="اكتب هنا تفاصيل دقيقة للعمل..."></textarea>
+            
+            <label for="tools">الأداة الرئيسية (للتدقيق):</label>
+            <select id="tools">
+                <option value="لحام">ماكينة لحام كهربائية</option>
+                <option value="صاروخ">صاروخ قطع/جلخ (كهربائي)</option>
+                <option value="يدوي" selected>أدوات يدوية (مفكات/مفاتيح)</option>
+                <option value="حفر">حفارة يدوية/ميكانيكية</option>
+                <option value="سقالة">تركيب/فك سقالة</option>
+            </select>
+            <div id="contradiction-check" class="ai-check">✅ جاري التدقيق الآلي...</div>
+        </div>
+
+        <div class="form-group">
+            <h3>VI. متطلبات العزل (Isolation / LOTO)</h3>
+            <label>التأكد من تطبيق العزل اللازم للمعدة:</label>
+            <label><input type="checkbox" id="iso-electrical"> 1. العزل الكهربائي (Lockout)</label><br>
+            <label><input type="checkbox" id="iso-mechanical"> 2. العزل الميكانيكي/الفصل (Blinding)</label><br>
+            <label><input type="checkbox" id="iso-pressure"> 3. تفريغ وتصفية الضغط/السوائل</label><br>
+            <label><input type="checkbox" id="iso-chemicals"> 4. غسيل الوعاء/المواسير (Flushing)</label><br>
+            <div id="isolation-check" class="ai-check">✅ يجب تأكيد متطلبات العزل اللازمة للعمل.</div>
+        </div>
+
+        <div class="form-group">
+            <h3>VII. تحديد المسؤوليات والاعتمادات</h3>
+            <label>1. المُصرح بالعمل (Issuing Authority - التشغيل/الجهة المصدرة):</label>
+            <input type="text" id="issuer-name" placeholder="اسم مسؤول التصريح">
+            
+            <label>2. المُشرف المُنفذ للعمل (Supervisor):</label>
+            <input type="text" id="executor-supervisor" placeholder="اسم المشرف القائم على التنفيذ">
+            
+            <label>3. مسؤول السلامة والصحة المهنية (HSE Officer):</label>
+            <input type="text" id="hse-officer-name" placeholder="اسم مسؤول السلامة المعتمد">
+
+             <div id="attendant-input-group" class="type-specific-section">
+                <label>4. مراقب السلامة (Fire Watch / Attendant):</label>
+                <input type="text" id="attendant-name" placeholder="اسم مراقب السلامة المعين/مراقب الحريق">
+            </div>
+            
+            <div id="signature-check" class="ai-check">✅ يُرجى إدخال أسماء المسؤولين للمتابعة.</div>
+        </div>
+        
+        <div class="form-group">
+            <h3>VIII. الاحتياطات المُضافة (تنبؤات AI)</h3>
+            <div id="ai-predictions"><p class="ai-check">✅ التدقيق المخصص المبدئي مُفعل.</p></div>
+        </div>
+
+        <button id="submit-permit" disabled>يجب حل جميع المشكلات قبل الإرسال</button>
+        <button id="print-permit" style="display: none; background-color: #337ab7; margin-top: 10px;">🖨️ طباعة التصريح المعتمد</button>
+        <div id="api-status" class="ai-check" style="display:none; margin-top:10px;"></div>
+    </div>
+    
+    <script>
+        // ===================================
+        // 2. منطق الذكاء الاصطناعي والديناميكية (JavaScript)
+        // ===================================
+
+        // 1. تعريف المتغيرات الرئيسية
+        const elements = {
+            permitType: document.getElementById('permit-type'),
+            colorBar: document.getElementById('permit-color-bar'),
+            permitTitle: document.getElementById('permit-title'),
+            submitButton: document.getElementById('submit-permit'),
+            printButton: document.getElementById('print-permit'),
+            apiStatus: document.getElementById('api-status'), // لعرض حالة API
+            // الأقسام الديناميكية
+            gasCheckSection: document.getElementById('gas-check-section'),
+            dynamicChecklist: document.getElementById('dynamic-checklist'),
+            checklistTitle: document.getElementById('checklist-title'),
+            attendantInputGroup: document.getElementById('attendant-input-group'),
+            // الإدخالات والقراءات
+            oxygenReading: document.getElementById('oxygen-reading'),
+            lelReading: document.getElementById('lel-reading'),
+            h2sReading: document.getElementById('h2s-reading'),
+            riskRating: document.getElementById('risk-rating'),
+            mocCheck: document.getElementById('moc-check'),
+            workDetails: document.getElementById('work-details'),
+            tools: document.getElementById('tools'),
+            // العزل والتوقيعات
+            isoElectrical: document.getElementById('iso-electrical'),
+            isoMechanical: document.getElementById('iso-mechanical'),
+            isoPressure: document.getElementById('iso-pressure'),
+            isoChemicals: document.getElementById('iso-chemicals'),
+            issuerName: document.getElementById('issuer-name'), 
+            executorSupervisor: document.getElementById('executor-supervisor'), 
+            hseOfficerName: document.getElementById('hse-officer-name'), 
+            attendantName: document.getElementById('attendant-name'), 
+            // Hard Stops & Warnings
+            gasHardStop: document.getElementById('gas-hard-stop'),
+            riskHardStop: document.getElementById('risk-hard-stop'),
+            mocWarning: document.getElementById('moc-warning'),
+            essentialChecklistHardStop: document.getElementById('essential-checklist-hard-stop'),
+            isolationCheck: document.getElementById('isolation-check'),
+            contradictionCheck: document.getElementById('contradiction-check'),
+            signatureCheck: document.getElementById('signature-check'),
+            aiPredictions: document.getElementById('ai-predictions'),
+            locationSelect: document.getElementById('location')
+        };
+        
+        // 2. تعريف أنظمة التصاريح (الألوان والشروط)
+        const PERMITS = {
+            HotWork: {
+                title: "تصريح العمل الساخن",
+                color: "#d9534f", // الأحمر
+                checklist: [
+                    { id: 'fire-extinguisher', text: '1. توفير طفايات حريق سارية ومناسبة.', default: true },
+                    { id: 'combustible-materials', text: '2. إزالة المواد القابلة للاشتعال في محيط 10 أمتار.', default: true },
+                    { id: 'fire-watch-ready', text: '3. تحديد وتجهيز مراقب حريق (مراقب السلامة).', default: false }, 
+                    { id: 'welding-blanket', text: '4. استخدام بطانية حريق/حواجز غير قابلة للاشتعال.', default: true }
+                ],
+                gasRequired: true,
+                attendantRequired: true
+            },
+            ConfinedSpace: {
+                title: "تصريح دخول الأماكن المغلقة",
+                color: "#337ab7", // الأزرق
+                checklist: [
+                    { id: 'ventilation-check', text: '1. التأكد من توفر التهوية القسرية الكافية.', default: true },
+                    { id: 'attendant-check', text: '2. تعيين مراقب سلامة مؤهل مزود باتصال مستمر.', default: false }, 
+                    { id: 'rescue-plan', text: '3. توفير معدات إنقاذ جاهزة وخطة إنقاذ معتمدة.', default: true },
+                    { id: 'isolation-check-cs', text: '4. تأكيد العزل الكامل للمدخل والمخارج (Blinding/LOTO).', default: true }
+                ],
+                gasRequired: true,
+                attendantRequired: true 
+            },
+            ColdWork: {
+                title: "تصريح العمل البارد",
+                color: "#5cb85c", // الأخضر
+                checklist: [
+                    { id: 'area-clean', text: '1. تنظيف منطقة العمل من أي عوائق أو انسكابات.', default: true },
+                    { id: 'tool-safe', text: '2. فحص سلامة جميع الأدوات اليدوية والكهربائية (إن وجدت).', default: true },
+                    { id: 'trip-hazard', text: '3. تأمين الأسلاك والكابلات لتجنب مخاطر التعثر.', default: true }
+                ],
+                gasRequired: false,
+                attendantRequired: false
+            },
+            Height: {
+                title: "تصريح العمل على ارتفاعات",
+                color: "#f0ad4e", // الأصفر
+                checklist: [
+                    { id: 'harness-check', text: '1. فحص حزام الأمان (Full Body Harness) ونقطة الربط.', default: true },
+                    { id: 'scaffolding-tag', text: '2. التأكد من أن السقالة/المنصة تحمل "بطاقة خضراء" سارية.', default: true },
+                    { id: 'fall-protection', text: '3. تأمين الحماية من السقوط (حواجز أو شبكات) في محيط العمل.', default: true }
+                ],
+                gasRequired: false,
+                attendantRequired: false
+            },
+            Excavation: {
+                title: "تصريح الحفر",
+                color: "#8a6d3b", // البني
+                checklist: [
+                    // تم التعديل: إضافة الإدارات المعنية
+                    { id: 'utility-permits', text: '1. موافقة الإدارات المعنية بكافة المرافق (كهرباء، مدنية، شبكات، إلخ).', default: false }, 
+                    { id: 'permit-to-dig', text: '2. الحصول على تصريح الحفر (Permit to Dig) من الأطراف المعنية.', default: false }, 
+                    { id: 'utility-checked', text: '3. التحقق من المرافق الجوفية (كابلات/مواسير) بواسطة مخططات وتأكيد الموقع.', default: true },
+                    { id: 'shoring-needed', text: '4. تحديد ما إذا كان تدعيم جوانب الحفر (Shoring) مطلوباً.', default: true },
+                    { id: 'access-check', text: '5. توفير وسائل دخول وخروج آمنة (سلالم/منحدرات) إذا زاد العمق عن 1.2 متر.', default: true }
+                ],
+                gasRequired: true, 
+                attendantRequired: false
+            }
+        };
+
+        // 3. دالة تحديث الواجهة عند تغيير نوع التصريح
+        function updatePermitType() {
+            const type = elements.permitType.value;
+            const config = PERMITS[type];
+
+            // 1. تحديث اللون والعنوان
+            elements.colorBar.style.backgroundColor = config.color;
+            elements.permitTitle.style.color = config.color;
+            elements.permitTitle.textContent = config.title + " - AI-PTW";
+            elements.submitButton.style.backgroundColor = config.color;
+            elements.printButton.style.backgroundColor = config.color;
+
+            // 2. تحديث قسم فحص الغازات (إظهار/إخفاء)
+            elements.gasCheckSection.style.display = config.gasRequired ? 'block' : 'none';
+
+            // 3. تحديث قائمة الشروط الإلزامية (IV)
+            let checklistHTML = '';
+            config.checklist.forEach(item => {
+                checklistHTML += `
+                    <label>
+                        <input type="checkbox" id="check-${item.id}" ${item.default ? 'checked' : ''} onchange="runAILogic()">
+                        ${item.text}
+                    </label><br>
+                `;
+            });
+            elements.dynamicChecklist.innerHTML = checklistHTML;
+            elements.checklistTitle.textContent = `IV. الشروط الإلزامية والاحتياطات لـ (${config.title})`;
+            
+            // 4. تحديث حقل مراقب السلامة (إظهار/إخفاء)
+            elements.attendantInputGroup.style.display = config.attendantRequired ? 'block' : 'none';
+        }
+
+
+        // 4. الدالة الرئيسية لتشغيل المنطق الذكي (بناءً على نوع التصريح الحالي)
+        function runAILogic() {
+            let canSubmit = true;
+            const currentType = elements.permitType.value;
+            const config = PERMITS[currentType];
+            
+            // إعادة تعيين جميع الرفوض الحاد
+            Object.values(elements).forEach(el => {
+                if (el && el.classList && el.classList.contains('hard-stop')) {
+                    el.style.display = 'none';
+                }
+            });
+            elements.mocWarning.style.display = 'none';
+
+            // --- A. تدقيقات عامة (PSM) ---
+
+            // 1. فحص المخاطر (High Risk)
+            if (elements.riskRating.value === 'High') {
+                elements.riskHardStop.style.display = 'block';
+                canSubmit = false;
+            } 
+
+            // 2. فحص MOC
+            if (elements.mocCheck.value === 'Pending') {
+                elements.mocWarning.style.display = 'block';
+                elements.mocWarning.textContent = '⚠️ تنبيه MOC: يجب إنهاء مراجعة MOC قبل الإرسال.';
+                canSubmit = false;
+            }
+
+            // 3. فحص الشروط الإلزامية الديناميكية
+            let checklistPassed = true;
+            config.checklist.forEach(item => {
+                const checkbox = document.getElementById(`check-${item.id}`);
+                if (checkbox && !checkbox.checked) {
+                    checklistPassed = false;
+                }
+            });
+            if (!checklistPassed) {
+                elements.essentialChecklistHardStop.style.display = 'block';
+                canSubmit = false;
+            }
+
+            // 4. فحص التوقيعات
+            let signatureRequired = (
+                elements.issuerName.value.trim() !== '' && 
+                elements.executorSupervisor.value.trim() !== '' && 
+                elements.hseOfficerName.value.trim() !== '' 
+            );
+
+            if (config.attendantRequired && elements.attendantName.value.trim() === '') {
+                 signatureRequired = false; 
+            }
+            if (!signatureRequired) {
+                elements.signatureCheck.textContent = '❌ رفض إلزامي: يجب تحديد جميع المسؤولين (المُصرح، المُشرف، مسؤول السلامة، ومراقب السلامة إن لزم).';
+                elements.signatureCheck.style.backgroundColor = '#f2dede';
+                elements.signatureCheck.style.color = '#a94442';
+                canSubmit = false;
+            } else {
+                elements.signatureCheck.textContent = '✅ تم تحديد جميع المسؤولين.';
+                elements.signatureCheck.style.backgroundColor = '#d9edf7';
+                elements.signatureCheck.style.color = '#31708f';
+            }
+
+
+            // --- B. تدقيقات خاصة بنوع التصريح ---
+            
+            const lelValue = parseFloat(elements.lelReading.value);
+            const o2Value = parseFloat(elements.oxygenReading.value);
+            const h2sValue = parseFloat(elements.h2sReading.value); 
+
+            let predictionsHtml = '';
+            elements.aiPredictions.innerHTML = '';
+            elements.contradictionCheck.textContent = '✅ جاري التدقيق الآلي... لا يوجد تناقض.';
+            elements.contradictionCheck.style.backgroundColor = '#d9edf7';
+            elements.contradictionCheck.style.color = '#31708f';
+
+            if (config.gasRequired) {
+                // *** تدقيق H2S: حد الرفض > 10 ppm ***
+                if (h2sValue > 10) {
+                    elements.gasHardStop.textContent = `❌ رفض فوري: تركيز الغازات السامة (H2S = ${h2sValue} ppm) يتجاوز الحد الآمن (10 ppm).`;
+                    elements.gasHardStop.style.display = 'block';
+                    canSubmit = false;
+                }
+                // *** تدقيق O2: خارج الحدود (19.5%-23.5%) ***
+                else if (o2Value < 19.5 || o2Value > 23.5) {
+                    const message = o2Value < 19.5 ? 'نقص الأكسجين' : 'زيادة الأكسجين';
+                    elements.gasHardStop.textContent = `❌ رفض فوري: قراءة الأكسجين (${o2Value} %) خارج الحدود الآمنة بسبب ${message}.`;
+                    elements.gasHardStop.style.display = 'block';
+                    canSubmit = false;
+                }
+            }
+
+
+            switch (currentType) {
+                case 'HotWork':
+                    // تدقيق الغازات للعمل الساخن (LEL يجب أن يكون صفراً)
+                    if (config.gasRequired && lelValue > 0) {
+                        elements.gasHardStop.textContent = `❌ رفض فوري: قراءة الغازات القابلة للاشتعال (LEL = ${lelValue} %) يجب أن تكون صفراً للعمل الساخن.`;
+                        elements.gasHardStop.style.display = 'block';
+                        canSubmit = false;
+                    }
+                    if (elements.tools.value !== 'لحام' && elements.tools.value !== 'صاروخ') {
+                         elements.contradictionCheck.textContent = '⚠️ تناقض: التصريح ساخن والأداة المختارة ليست مولدة للشرر. يفضل تغيير التصريح إلى "بارد".';
+                         elements.contradictionCheck.style.backgroundColor = '#faebcc';
+                         elements.contradictionCheck.style.color = '#8a6d3b';
+                    }
+                    break;
+
+                case 'ConfinedSpace':
+                    // تدقيق الغازات للأماكن المغلقة (LEL يجب أن يكون صفراً)
+                    if (config.gasRequired && lelValue > 0) {
+                        elements.gasHardStop.textContent = `❌ رفض فوري: قراءة الغازات القابلة للاشتعال (LEL = ${lelValue} %) يجب أن تكون صفراً للأماكن المغلقة.`;
+                        elements.gasHardStop.style.display = 'block';
+                        canSubmit = false;
+                    }
+                    if (elements.tools.value === 'لحام' || elements.tools.value === 'صاروخ') {
+                        predictionsHtml += '<p class="ai-check" style="background-color:#ffe0b2; color:#e65100;">🚨 متطلب إضافي: يلزم فحص LEL بشكل مستمر مع وجود جهاز تنفس احتياطي.</p>';
+                    }
+                    break;
+                
+                case 'Excavation':
+                    // الرفض الفوري لعدم موافقة المرافق (التعديل المطلوب)
+                    if (!document.getElementById('check-utility-permits').checked) {
+                        elements.essentialChecklistHardStop.textContent = '❌ رفض فوري: يجب تأكيد موافقة جميع الإدارات المعنية بالمرافق (كهرباء، مدنية، شبكات) قبل الحفر.';
+                        elements.essentialChecklistHardStop.style.display = 'block';
+                        canSubmit = false;
+                    } 
+                    break;
+            }
+            
+            elements.aiPredictions.innerHTML = predictionsHtml || '<p class="ai-check">✅ التدقيق المخصص المبدئي مُفعل.</p>';
+
+            // --- C. التحكم النهائي ---
+            elements.submitButton.disabled = !canSubmit;
+            
+            if (canSubmit) {
+                elements.submitButton.textContent = `إرسال للاعتماد عبر API (جاهز - ${config.title})`;
+                elements.printButton.style.display = 'block'; 
+            } else {
+                elements.submitButton.textContent = 'يجب حل جميع المشكلات قبل الإرسال';
+                elements.printButton.style.display = 'none'; 
+            }
+        }
+
+
+        // ===================================
+        // 5. دالة تجميع وإرسال بيانات JSON إلى API (جديدة)
+        // ===================================
+        
+        async function sendPermitData() {
+            const currentType = elements.permitType.value;
+            const config = PERMITS[currentType];
+            
+            // 1. تجميع قائمة التحقق الديناميكية (Checklist)
+            const checklistData = config.checklist.map(item => {
+                const checkbox = document.getElementById(`check-${item.id}`);
+                return {
+                    itemId: item.id,
+                    text: item.text,
+                    status: checkbox ? checkbox.checked : false
+                };
+            });
+
+            // 2. تجميع بيانات المسؤولين
+            const personnelData = {
+                issuer: {
+                    name: elements.issuerName.value.trim(),
+                    role: "Issuing Authority"
+                },
+                supervisor: {
+                    name: elements.executorSupervisor.value.trim(),
+                    role: "Executing Supervisor"
+                },
+                hseOfficer: {
+                    name: elements.hseOfficerName.value.trim(),
+                    role: "HSE Officer"
+                }
+            };
+
+            // إضافة مراقب السلامة إذا كان مطلوبًا
+            if (config.attendantRequired) {
+                personnelData.attendant = {
+                    name: elements.attendantName.value.trim(),
+                    role: "Safety Attendant / Fire Watch"
+                };
+            }
+            
+            // 3. بناء هيكل JSON الكامل
+            const permitData = {
+                requestID: 'PTW-TEMP-' + Date.now(), 
+                
+                permitHeader: {
+                    workOrder: document.getElementById('work-order').value.trim(),
+                    permitType: currentType,
+                    locationCode: elements.locationSelect.value,
+                    locationName: elements.locationSelect.options[elements.locationSelect.selectedIndex].text,
+                    startDate: document.getElementById('start-date').value,
+                    startTime: document.getElementById('start-time').value,
+                    riskRating: elements.riskRating.value,
+                    durationHours: 8 
+                },
+                
+                workDescription: {
+                    descriptionDetails: elements.workDetails.value.trim(),
+                    mainTool: elements.tools.value,
+                    mocStatus: elements.mocCheck.value
+                },
+
+                safetyMetrics: {
+                    isGasCheckRequired: config.gasRequired,
+                    oxygenReading: config.gasRequired ? parseFloat(elements.oxygenReading.value) : null,
+                    lelReading: config.gasRequired ? parseFloat(elements.lelReading.value) : null,
+                    h2sReading: config.gasRequired ? parseFloat(elements.h2sReading.value) : null,
+                    fireWatchRequired: config.attendantRequired 
+                },
+
+                isolationChecks: {
+                    isoElectrical: elements.isoElectrical.checked,
+                    isoMechanical: elements.isoMechanical.checked,
+                    isoPressure: elements.isoPressure.checked,
+                    isoChemicals: elements.isoChemicals.checked
+                },
+
+                checklistStatus: checklistData,
+                
+                personnel: personnelData
+            };
+
+            // 4. الإرسال الفعلي إلى API
+            
+            const API_ENDPOINT = 'http://your-server-domain.com/api/permits/new'; 
+            // يجب استبدال هذا بعنوان API الحقيقي للتكامل مع SAP
+
+            elements.apiStatus.textContent = 'جاري الإرسال إلى الخادم...';
+            elements.apiStatus.style.display = 'block';
+            
+            try {
+                // ******************************************************************************
+                // ملاحظة: لغرض العرض في GitHub Pages، تم التعليق على طلب fetch الحقيقي 
+                // وتم استخدام وقت انتظار مصطنع (setTimeout) لمحاكاة نجاح الإرسال.
+                // ******************************************************************************
+                
+                // const response = await fetch(API_ENDPOINT, {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(permitData)
+                // });
+
+                // محاكاة استجابة API ناجحة بعد 1.5 ثانية
+                await new Promise(resolve => setTimeout(resolve, 1500)); 
+                const isSuccess = Math.random() > 0.1; // 90% فرصة نجاح للمحاكاة
+                
+                if (isSuccess) {
+                    const permitId = "PTW-" + Math.floor(Math.random() * 10000);
+                    elements.apiStatus.textContent = `✅ نجاح! رقم الاعتماد الجديد: ${permitId}. تم تحديث حالة أمر صيانة SAP.`;
+                    elements.apiStatus.style.backgroundColor = '#dff0d8';
+                    elements.apiStatus.style.color = '#3c763d';
+                    elements.submitButton.disabled = true;
+
+                    console.log("JSON Payload Sent:", permitData);
+                    console.log("Simulated Success Response. Permit ID:", permitId);
+                } else {
+                    // محاكاة فشل الخادم أو رفض منطقي متأخر
+                    elements.apiStatus.textContent = `❌ فشل الإرسال: الخادم رفض الطلب. يرجى مراجعة سجلات API.`;
+                    elements.apiStatus.style.backgroundColor = '#f2dede';
+                    elements.apiStatus.style.color = '#a94442';
+                }
+
+            } catch (error) {
+                elements.apiStatus.textContent = '❌ فشل الاتصال بخادم SAP/API. يرجى التحقق من الرابط والشبكة.';
+                elements.apiStatus.style.backgroundColor = '#f2dede';
+                elements.apiStatus.style.color = '#a94442';
+                console.error('Error sending data:', error);
+            }
+        }
+
+
+        // 6. ربط الأحداث وتشغيل البداية
+
+        Object.values(elements).forEach(el => {
+            if (el && el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                el.addEventListener('change', runAILogic);
+                el.addEventListener('input', runAILogic);
+            }
+        });
+
+        elements.dynamicChecklist.addEventListener('change', runAILogic);
+        elements.printButton.addEventListener('click', function() { window.print(); });
+
+        // ربط الدالة الجديدة بزر الإرسال
+        elements.submitButton.addEventListener('click', function(event) {
+            event.preventDefault(); // منع الإرسال الافتراضي للنموذج
+            if (!elements.submitButton.disabled) {
+                sendPermitData();
+            } else {
+                alert('الرجاء حل جميع مشكلات الرفض قبل الإرسال.');
+            }
+        });
+
+        // تشغيل البداية
+        updatePermitType(); 
+        runAILogic(); 
+    </script>
+</body>
+</html>
